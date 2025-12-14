@@ -1,6 +1,6 @@
 ---
 
-name: Rocky9-CI
+name: Debian12-CI
 
 on:
   push:
@@ -22,9 +22,9 @@ permissions:
   contents: read
 
 jobs:
-  rocky9-ci:
+  debian12-ci:
     uses: philnewm/ansible-role-repo-control/.github/workflows/molecule-ci-podman.yml@main
     with:
-      scenario_name: rocky9
+      scenario_name: debian13
 
 ...

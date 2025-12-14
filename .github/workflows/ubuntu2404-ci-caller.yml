@@ -1,5 +1,4 @@
 ---
-# INFO disabled due to ubuntu2204 not supporting `getsubids` comamdn from uidmap package
 name: Ubuntu2204-CI
 
 on:
@@ -23,8 +22,8 @@ permissions:
 
 jobs:
   ubuntu2204-ci:
-    uses: philnewm/ansible-role-repo-control/.github/workflows/molecule-ci-vbox.yml@main
+    uses: philnewm/ansible-role-repo-control/.github/workflows/molecule-ci-podman.yml@main
     with:
-      scenario_name: ubuntu2204
+      scenario_name: ubuntu2404
 
 ...
