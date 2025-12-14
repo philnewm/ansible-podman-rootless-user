@@ -31,7 +31,7 @@
     - name: Ensure subuid packages are installed
       become: true
       ansible.builtin.package:
-        name: "{{ subid_package[ansible_distribution] }}"
+        name: "{{ subid_package[ansible_facts['distribution']] }}"
         state: present
         update_cache: true
 
