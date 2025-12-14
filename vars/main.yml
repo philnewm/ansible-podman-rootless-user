@@ -1,10 +1,11 @@
 ---
 
 subid_package:
+  CentOS: "shadow-utils-subid"
   AlmaLinux: "shadow-utils-subid"
   Rocky: "shadow-utils-subid"
-  CentOS: "shadow-utils-subid"
-  Ubuntu: "libvshadow-utils"
+  Fedora: "shadow-utils-subid"
+  Ubuntu: "uidmap"
   Debian: "uidmap"
 
 ...
