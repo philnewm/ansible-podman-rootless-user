@@ -22,7 +22,7 @@ permissions:
   contents: read
 
 jobs:
-  rocky9-ci:
+  fedora43-ci:
     uses: philnewm/ansible-role-repo-control/.github/workflows/molecule-ci-podman.yml@main
     with:
       scenario_name: fedora43
