@@ -28,9 +28,4 @@
     shell: /bin/bash
     state: absent
 
-- name: Remove unused dependencies
-  become: true
-  ansible.builtin.package:
-    autoremove: true
-
 ...
