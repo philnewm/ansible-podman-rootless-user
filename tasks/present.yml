@@ -28,26 +28,21 @@
 - name: Set up sbids for system user
   when: system_user
   block:
-    - name: Ensure subuid packages are installed
-      become: true
-      ansible.builtin.package:
-        name: "{{ subid_package[ansible_facts.distribution] }}"
-        state: present
-        update_cache: true
-
     - name: Get subuid user entry
       ansible.builtin.command:
-        cmd: "getsubids {{ rootless_user }}"
+        cmd: |
+          grep -q '^{{ rootless_user }}:' /etc/subuid
+      register: subuid_result
       changed_when: false
       failed_when: subuid_result.rc not in [0, 1]
-      register: subuid_result
 
     - name: Get subgid user entry
       ansible.builtin.command:
-        cmd: "getsubids -g {{ rootless_user }}"
+        cmd: |
+          grep -q '^{{ rootless_user }}:' /etc/subgid
+      register: subgid_result
       changed_when: false
       failed_when: subgid_result.rc not in [0, 1]
-      register: subgid_result
 
     - name: Initialize subid list
       ansible.builtin.set_fact:

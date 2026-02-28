@@ -30,21 +30,20 @@
 
 - name: "Get subuids for user {{ rootless_user }}"
   ansible.builtin.command:
-    cmd: "getsubids {{ rootless_user }}"
+    cmd: "cut -d: -f1 /etc/subuid"
   changed_when: false
-  failed_when: subuid_result.rc not in [0, 1]
   register: subuid_result
 
 - name: "Test subuids for user {{ rootless_user }}"
   ansible.builtin.assert:
     that:
-      - rootless_user in subuid_result.stdout
+      - rootless_user in subuid_result.stdout_lines
     fail_msg: "Failed to find subuids for user {{ rootless_user }}"
     quiet: true
 
 - name: "Get subgids for user {{ rootless_user }}"
   ansible.builtin.command:
-    cmd: "getsubids -g {{ rootless_user }}"
+    cmd: "cut -d: -f1 /etc/subuid"
   changed_when: false
   failed_when: subgid_result.rc not in [0, 1]
   register: subgid_result
