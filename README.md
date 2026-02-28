@@ -1,6 +1,6 @@
 # Podman-rootless-user-Role
 
-[![Alma9-CI](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/alma9-ci-caller.yml/badge.svg)](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/alma9-ci-caller.yml) [![Rocky9-CI](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/rocky9-ci-caller.yml/badge.svg)](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/rocky9-ci-caller.yml) [![CentOSStream9-CI](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/centosstream9-ci-caller.yml/badge.svg)](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/centosstream9-ci-caller.yml) [![Fedora43-CI](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/fedora43-ci-caller.yml/badge.svg)](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/fedora43-ci-caller.yml)<br>
+[![AlmaLinux9-CI](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/almalinux9-ci-caller.yml/badge.svg)](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/almalinux9-ci-caller.yml) [![Rocky9-CI](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/rocky9-ci-caller.yml/badge.svg)](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/rocky9-ci-caller.yml) [![CentOSStream9-CI](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/centosstream9-ci-caller.yml/badge.svg)](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/centosstream9-ci-caller.yml) [![Fedora43-CI](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/fedora43-ci-caller.yml/badge.svg)](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/fedora43-ci-caller.yml)<br>
 [![Ubuntu2404-CI](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/ubuntu2404-ci-caller.yml/badge.svg)](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/ubuntu2404-ci-caller.yml) [![Debian13-CI](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/debian13-ci-caller.yml/badge.svg)](https://github.com/philnewm/ansible-podman-rootless-user/actions/workflows/debian13-ci-caller.yml)
 
 Role description
@@ -24,8 +24,6 @@ This role includes a molecule testing setup as a submodule at `molecule/`
  ┃ ┣ 📜present.yml
  ┃ ┣ 📜subid_config.yml
  ┃ ┗ 📜tests.yml
- ┣ 📂vars
- ┃ ┗ 📜main.yml
  ┣ 📜.gitignore
  ┣ 📜.gitmodules
  ┗ 📜README.md
