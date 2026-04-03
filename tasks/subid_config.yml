@@ -6,15 +6,16 @@
   changed_when: false
   register: latest_subid_result
 
-- name: "Filter end of {{ subid_type }} range"
+- name: "Filter start of {{ subid_type }} range"
   ansible.builtin.set_fact:
+    subid_start: "{{ latest_subid_result.stdout.split(':')[1] }}"
     subid_end: "{{ latest_subid_result.stdout.split(':')[-1] }}"
 
 - name: "Ensure {{ subid_type }} range for user {{ rootless_user }}"
   become: true
   ansible.builtin.lineinfile:
     path: "/etc/{{ subid_type }}"
-    line: "{{ rootless_user }}:{{ subid_end }}:{{ subid_end | int + subid_steps }}"
+    line: "{{ rootless_user }}:{{ subid_start | int + subid_steps }}:{{ subid_steps }}"
     create: true
     state: present
     mode: "0644"

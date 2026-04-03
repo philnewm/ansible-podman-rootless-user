@@ -55,4 +55,17 @@
     fail_msg: "Failed to find subgids for user {{ rootless_user }}"
     quiet: true
 
+- name: Check if DBus session bus exists
+  ansible.builtin.stat:
+    path: "/run/user/{{ user_result.ansible_facts.getent_passwd[rootless_user][1] }}/bus"
+  register: dbus_socket
+
+- name: Assert DBus session exists
+  when: ansible_facts.distribution | lower == "debian"
+  ansible.builtin.assert:
+    that:
+      - dbus_socket.stat.exists
+    fail_msg: "No DBus session running for {{ rootless_user }}"
+    quiet: true
+
 ...

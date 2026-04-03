@@ -10,6 +10,7 @@
     system: "{{ system_user }}"
     shell: /bin/bash
     state: present
+  register: user_result
 
 - name: Enable lingering for rootless user
   become: true
@@ -17,15 +18,47 @@
     cmd: "loginctl enable-linger {{ rootless_user }}"
   args:
     creates: "/var/lib/systemd/linger/{{ rootless_user }}"
+  register: lingering_result
 
-- name: Add containers user to systemd-journal group
+- name: Add service user to systemd-journal group
   become: true
   ansible.builtin.user:
     name: "{{ rootless_user }}"
     groups: "systemd-journal"
     append: true
 
-- name: Set up sbids for system user
+- name: Install dbus packages
+  become: true
+  ansible.builtin.package:
+    name: "{{ rootless_user_dbus_packages }}"
+    state: present
+    update_cache: true
+
+- name: Set up debian user session
+  when: ansible_facts.distribution | lower == "debian"
+  block:
+    - name: Ensure dbus-user-session installed
+      become: true
+      ansible.builtin.package:
+        name: dbus-user-session
+        state: present
+
+    - name: Start user session
+      become: true
+      ansible.builtin.command:
+        cmd: "machinectl shell {{ rootless_user }}@ /bin/true"
+        creates: "/run/user/{{ user_result.uid }}/systemd"
+
+    - name: Start user dbus session
+      become: true
+      become_user: "{{ rootless_user }}"
+      environment:
+        XDG_RUNTIME_DIR: "/run/user/{{ user_result.uid }}"
+      ansible.builtin.command:
+        cmd: "systemctl --user start dbus.service"  # noqa: command-instead-of-module
+        creates: "/run/user/{{ user_result.uid }}/bus"
+
+- name: Set up subids for system user
   when: system_user
   block:
     - name: Get subuid user entry
