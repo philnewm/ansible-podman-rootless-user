@@ -1,18 +1,18 @@
 ---
 
-- name: "Query for user {{ rootless_user }}"
+- name: "Query for user {{ podman_rootless_user }}"
   ansible.builtin.getent:
     database: passwd
-    key: "{{ rootless_user }}"
+    key: "{{ podman_rootless_user }}"
   register: user_result
 
-- name: "Test for existing user {{ rootless_user }}"
+- name: "Test for existing user {{ podman_rootless_user }}"
   ansible.builtin.assert:
     that:
-      - rootless_user in user_result.ansible_facts.getent_passwd.keys()
-      - rootless_user_home == user_result.ansible_facts.getent_passwd[rootless_user][4]
-      - user_result.ansible_facts.getent_passwd[rootless_user][1] | int < 1000
-    fail_msg: "Failed user check for {{ rootless_user }}"
+      - podman_rootless_user in user_result.ansible_facts.getent_passwd.keys()
+      - podman_rootless_user_home == user_result.ansible_facts.getent_passwd[podman_rootless_user][4]
+      - user_result.ansible_facts.getent_passwd[podman_rootless_user][1] | int < 1000
+    fail_msg: "Failed user check for {{ podman_rootless_user }}"
     quiet: true
 
 - name: Get linger users
@@ -21,43 +21,43 @@
   changed_when: false
   register: linger_users
 
-- name: "Test enabled lingering for user {{ rootless_user }}"
+- name: "Test enabled lingering for user {{ podman_rootless_user }}"
   ansible.builtin.assert:
     that:
-      - rootless_user in linger_users.stdout_lines
-    fail_msg: "Lingering was not enabled for user {{ rootless_user }}"
+      - podman_rootless_user in linger_users.stdout_lines
+    fail_msg: "Lingering was not enabled for user {{ podman_rootless_user }}"
     quiet: true
 
-- name: "Get subuids for user {{ rootless_user }}"
+- name: "Get subuids for user {{ podman_rootless_user }}"
   ansible.builtin.command:
     cmd: "cut -d: -f1 /etc/subuid"
   changed_when: false
   register: subuid_result
 
-- name: "Test subuids for user {{ rootless_user }}"
+- name: "Test subuids for user {{ podman_rootless_user }}"
   ansible.builtin.assert:
     that:
-      - rootless_user in subuid_result.stdout_lines
-    fail_msg: "Failed to find subuids for user {{ rootless_user }}"
+      - podman_rootless_user in subuid_result.stdout_lines
+    fail_msg: "Failed to find subuids for user {{ podman_rootless_user }}"
     quiet: true
 
-- name: "Get subgids for user {{ rootless_user }}"
+- name: "Get subgids for user {{ podman_rootless_user }}"
   ansible.builtin.command:
     cmd: "cut -d: -f1 /etc/subuid"
   changed_when: false
   failed_when: subgid_result.rc not in [0, 1]
   register: subgid_result
 
-- name: "Test subgids for user {{ rootless_user }}"
+- name: "Test subgids for user {{ podman_rootless_user }}"
   ansible.builtin.assert:
     that:
-      - rootless_user in subgid_result.stdout
-    fail_msg: "Failed to find subgids for user {{ rootless_user }}"
+      - podman_rootless_user in subgid_result.stdout
+    fail_msg: "Failed to find subgids for user {{ podman_rootless_user }}"
     quiet: true
 
 - name: Check if DBus session bus exists
   ansible.builtin.stat:
-    path: "/run/user/{{ user_result.ansible_facts.getent_passwd[rootless_user][1] }}/bus"
+    path: "/run/user/{{ user_result.ansible_facts.getent_passwd[podman_rootless_user][1] }}/bus"
   register: dbus_socket
 
 - name: Assert DBus session exists
@@ -65,7 +65,7 @@
   ansible.builtin.assert:
     that:
       - dbus_socket.stat.exists
-    fail_msg: "No DBus session running for {{ rootless_user }}"
+    fail_msg: "No DBus session running for {{ podman_rootless_user }}"
     quiet: true
 
 ...

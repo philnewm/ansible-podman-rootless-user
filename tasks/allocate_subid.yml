@@ -1,0 +1,95 @@
+---
+
+- name: "Read subordinate id allocations for {{ subid_type }}"
+  ansible.builtin.slurp:
+    src: "/etc/sub{{ subid_type }}"
+  register: _subid_file
+
+- name: Decode subid entries
+  ansible.builtin.set_fact:
+    subid_lines: >-
+      {{
+        (_subid_file.content | b64decode).splitlines()
+        | reject('match', '^\s*(#|$)')
+        | list
+      }}
+
+- name: Validate subordinate ID syntax
+  ansible.builtin.assert:
+    that:
+      - >-
+        subid_lines
+        | reject('match', '^[^:\s]+:[0-9]+:[1-9][0-9]*$')
+        | list | length == 0
+    fail_msg: "Invalid entries in /etc/sub{{ subid_type }}"
+    quiet: true
+
+- name: Extract subordinate id entries
+  ansible.builtin.set_fact:
+    subid_entries: >-
+      {{
+        subid_lines
+        | map('split', ':')
+        | list
+      }}
+
+- name: Check for existing allocation
+  ansible.builtin.set_fact:
+    subid_user_exists: >-
+      {{
+        podman_rootless_user in
+        (subid_entries | map('first') | list)
+      }}
+
+- name: "Allocate missing subordinate ids for {{ subid_type }}"
+  when: not subid_user_exists
+  block:
+    - name: Read subordinate id defaults
+      ansible.builtin.slurp:
+        src: /etc/login.defs
+      register: login_defs
+
+    - name: Get subordinate id configuration for sub{{ subid_type }}
+      vars:
+        login_defs_content: "{{ login_defs.content | b64decode }}"
+        subid_prefix: "SUB_{{ subid_type | upper }}"
+        _min: "{{ login_defs_content | regex_search('^' ~ subid_prefix ~ '_MIN\\s+([0-9]+)$', '\\1', multiline=true) }}"
+        _max: "{{ login_defs_content | regex_search('^' ~ subid_prefix ~ '_MAX\\s+([0-9]+)$', '\\1', multiline=true) }}"
+        _count: "{{ login_defs_content | regex_search('^' ~ subid_prefix ~ '_COUNT\\s+([0-9]+)$', '\\1', multiline=true) }}"
+      ansible.builtin.set_fact:
+        subid_min: "{{ _min[0] | int }}"
+        subid_limit: "{{ _max[0] | int }}"
+        subid_count: "{{ _count[0] | int }}"
+
+    - name: Initialize highest allocated subordinate id
+      ansible.builtin.set_fact:
+        subid_max_end: "{{ (subid_min | int) - 1 }}"
+
+    - name: Find highest allocated subordinate id
+      ansible.builtin.set_fact:
+        subid_max_end: >-
+          {{
+            [
+              subid_max_end | int,
+              (item[1] | int) + (item[2] | int) - 1
+            ] | max
+          }}
+      loop: "{{ subid_entries }}"
+
+    - name: Verify subordinate id range is available
+      ansible.builtin.assert:
+        that: (subid_max_end | int) + (subid_count | int) <= (subid_limit | int)
+        fail_msg: "No sufficient subordinate {{ subid_type }} range available"
+        quiet: true
+
+    - name: Allocate subordinate ids
+      ansible.builtin.lineinfile:
+        path: "/etc/sub{{ subid_type }}"
+        line: "{{ podman_rootless_user }}:{{ (subid_max_end | int) + 1 }}:{{ subid_count }}"
+        state: present
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Migrate rootless podman namespace
+
+...

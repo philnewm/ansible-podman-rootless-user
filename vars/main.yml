@@ -1,6 +1,11 @@
 ---
 
-rootless_user_dbus_packages:
+podman_packages:
+  - podman
+  - systemd-container
+  - passt
+
+podman_rootless_user_dbus_packages:
   - dbus
   - dbus-broker
   - systemd-container
