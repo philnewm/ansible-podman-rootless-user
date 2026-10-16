@@ -1,11 +1,18 @@
 ---
 
+- name: Ensure required podman packages are installed
+  become: true
+  ansible.builtin.package:
+    name: "{{ podman_packages }}"
+    state: present
+    update_cache: true
+
 - name: Ensure container user exists
   become: true
   ansible.builtin.user:
-    name: "{{ rootless_user }}"
+    name: "{{ podman_rootless_user }}"
     comment: "Container service account"
-    home: "{{ rootless_user_home }}"
+    home: "{{ podman_rootless_user_home }}"
     create_home: true
     system: "{{ system_user }}"
     shell: /bin/bash
@@ -15,22 +22,22 @@
 - name: Enable lingering for rootless user
   become: true
   ansible.builtin.command:
-    cmd: "loginctl enable-linger {{ rootless_user }}"
+    cmd: "loginctl enable-linger {{ podman_rootless_user }}"
   args:
-    creates: "/var/lib/systemd/linger/{{ rootless_user }}"
+    creates: "/var/lib/systemd/linger/{{ podman_rootless_user }}"
   register: lingering_result
 
 - name: Add service user to systemd-journal group
   become: true
   ansible.builtin.user:
-    name: "{{ rootless_user }}"
+    name: "{{ podman_rootless_user }}"
     groups: "systemd-journal"
     append: true
 
 - name: Install dbus packages
   become: true
   ansible.builtin.package:
-    name: "{{ rootless_user_dbus_packages }}"
+    name: "{{ podman_rootless_user_dbus_packages }}"
     state: present
     update_cache: true
 
@@ -46,50 +53,25 @@
     - name: Start user session
       become: true
       ansible.builtin.command:
-        cmd: "machinectl shell {{ rootless_user }}@ /bin/true"
+        cmd: "machinectl shell {{ podman_rootless_user }}@ /bin/true"
         creates: "/run/user/{{ user_result.uid }}/systemd"
 
     - name: Start user dbus session
       become: true
-      become_user: "{{ rootless_user }}"
+      become_user: "{{ podman_rootless_user }}"
       environment:
         XDG_RUNTIME_DIR: "/run/user/{{ user_result.uid }}"
       ansible.builtin.command:
         cmd: "systemctl --user start dbus.service"  # noqa: command-instead-of-module
         creates: "/run/user/{{ user_result.uid }}/bus"
 
-- name: Set up subids for system user
-  when: system_user
-  block:
-    - name: Get subuid user entry
-      ansible.builtin.command:
-        cmd: |
-          grep -q '^{{ rootless_user }}:' /etc/subuid
-      register: subuid_result
-      changed_when: false
-      failed_when: subuid_result.rc not in [0, 1]
-
-    - name: Get subgid user entry
-      ansible.builtin.command:
-        cmd: |
-          grep -q '^{{ rootless_user }}:' /etc/subgid
-      register: subgid_result
-      changed_when: false
-      failed_when: subgid_result.rc not in [0, 1]
-
-    - name: Initialize subid list
-      ansible.builtin.set_fact:
-        subids: >-
-          {{
-            ([ 'subuid' ] if subuid_result.rc == 1 else [])
-            + ([ 'subgid' ] if subgid_result.rc == 1 else [])
-          }}
-
-    - name: Include subid config
-      loop: "{{ subids }}"
-      loop_control:
-        loop_var: subid_type
-      ansible.builtin.include_tasks:
-        file: subid_config.yml
+- name: Configure subordinate id ranges
+  loop:
+    - uid
+    - gid
+  loop_control:
+    loop_var: subid_type
+  ansible.builtin.include_tasks:
+    file: allocate_subid.yml
 
 ...
