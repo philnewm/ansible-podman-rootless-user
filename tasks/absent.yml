@@ -3,26 +3,26 @@
 - name: Disable lingering for rootless user
   become: true
   ansible.builtin.command:
-    cmd: "loginctl disable-linger {{ rootless_user }}"
+    cmd: "loginctl disable-linger {{ podman_rootless_user }}"
   args:
-    removes: "/var/lib/systemd/linger/{{ rootless_user }}"
+    removes: "/var/lib/systemd/linger/{{ podman_rootless_user }}"
 
-- name: "Ensure subid removal of user {{ rootless_user }}"
+- name: "Ensure subid removal of user {{ podman_rootless_user }}"
   become: true
   loop:
     - subuid
     - subgid
   ansible.builtin.lineinfile:
     path: "/etc/{{ item }}"
-    regexp: ".*{{ rootless_user }}.*"
+    regexp: ".*{{ podman_rootless_user }}.*"
     state: absent
 
 - name: Ensure container user is removed
   become: true
   ansible.builtin.user:
-    name: "{{ rootless_user }}"
+    name: "{{ podman_rootless_user }}"
     comment: "Container service account"
-    home: "{{ rootless_user_home }}"
+    home: "{{ podman_rootless_user_home }}"
     create_home: true
     system: "{{ system_user }}"
     shell: /bin/bash
