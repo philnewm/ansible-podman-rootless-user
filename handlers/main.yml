@@ -1,0 +1,7 @@
+---
+
+- name: Migrate rootless podman namespace
+  ansible.builtin.include_tasks:
+    file: migrate_rootless_namespace.yml
+
+...
