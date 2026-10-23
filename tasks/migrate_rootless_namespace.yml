@@ -1,19 +1,19 @@
 ---
 
-- name: Populate service facts
-  ansible.builtin.service_facts:
-
 - name: Migrate rootless podman namespace
   become: true
   become_user: "{{ podman_rootless_user }}"
+  vars:
+    # Override ansible_become_user from inventory / Foreman
+    ansible_become_user: "{{ podman_rootless_user }}"
   environment:
     XDG_RUNTIME_DIR: "/run/user/{{ user_result.uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ user_result.uid }}/bus"
   block:
     - name: Stop rootless Podman socket
       loop:
         - podman.socket
         - podman.service
-      when: ansible_facts.services[item] is defined
       ansible.builtin.systemd_service:
         name: "{{ item }}"
         state: stopped
@@ -32,7 +32,6 @@
       become_user: "{{ podman_rootless_user }}"
       environment:
         XDG_RUNTIME_DIR: "/run/user/{{ user_result.uid }}"
-      when: ansible_facts.services["podman.socket"] is defined
       ansible.builtin.systemd_service:
         name: podman.socket
         state: started
