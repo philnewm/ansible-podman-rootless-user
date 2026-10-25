@@ -90,6 +90,11 @@
         owner: root
         group: root
         mode: "0644"
-      notify: Migrate rootless podman namespace
+      register: subid_alloc
+
+    - name: Migrate rootless podman namespace
+      when: subid_alloc.changed  # noqa: no-handler
+      ansible.builtin.include_tasks:
+        file: migrate_rootless_namespace.yml
 
 ...
